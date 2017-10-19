@@ -1,0 +1,117 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+body{
+  margin: 0;
+  padding: 0;
+  overflow:hidden;
+}
+
+body{
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-color: rgb(248, 248, 248)
+}
+
+p{
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+
+#info {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: 1.0em;
+  margin-right: 2em;
+  z-index: 5;
+}
+
+#toolbox{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin-bottom: 0.5em;
+  margin-right: 1em;
+  border: 2px solid #EEEEEE;
+  border-radius: 5px;
+  padding: 1em;
+  z-index: 5;
+}
+
+#hidden-file-upload{
+  display: none;
+}
+
+#download-input{
+  margin: 0 0.5em;
+}
+
+.memberG text{
+  pointer-events: none;
+}
+
+marker{
+  fill: #333;
+}
+
+/* This has to be from svg side*/
+g.memberG circle,
+g.memberG rect{
+  /*fill: #F6FBFF !important;*/
+  stroke: #333 !important;
+  stroke-width: 2px !important;
+}
+
+g.memberG:hover circle,
+g.memberG:hover rect{
+  fill: rgb(100, 238, 241) !important;
+}
+
+g.selected circle,
+g.selected rect{
+  fill: rgb(220, 102, 105) !important;
+}
+
+g.selected:hover circle,
+g.selected:hover rect{
+  fill: rgb(220, 102, 105) !important;
+}
+
+/*This has to be in svg*/
+path.link {
+  fill: none !important;;
+  stroke: #333 !important;;
+  stroke-width: 2px !important;;
+  cursor: default !important;;
+}
+
+path.link:hover{
+  stroke: rgb(94, 196, 204) !important;;
+}
+
+g.connect-node circle{
+  fill: #BEFFFF !important;;
+}
+
+path.link.hidden{
+  stroke-width: 0 !important;;
+}
+
+path.link.selected {
+  stroke: rgb(229, 172, 247) !important;;
+}
+
+/*Legend  entries*/
+#familyLegend p {
+  font-size: 12px;
+  left: 0;
+  text-align:left;
+}
