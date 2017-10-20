@@ -5,10 +5,10 @@
 
         <!-- This has to be included first -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-        <link rel="stylesheet" href="/assets/font-awesome-4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="assets/font-awesome-4.7.0/css/font-awesome.min.css">
 
         <!-- We override the bootstrap -->
-        <link rel='stylesheet' href='/stylesheets/style.css' />
+        <link rel='stylesheet' href='stylesheets/style.css' />
 
         <script src="https://d3js.org/d3.v3.min.js"></script>
         <script src="https://d3js.org/d3-hierarchy.v1.min.js"></script>
@@ -21,20 +21,29 @@
     <body>
         <!-- Menu -->
         <div id="menu" class="dropdown">
-            <button class="btn btn-outline-dark dropdown-toggle fa fa-bars" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+            <button class="btn btn-outline-dark dropdown-toggle fa fa-bars" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu"></button>
             <div id="menu-dropdown" class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu">
-                <button id="upload_genogram" class="dropdown-item" type="button">Upload</button>
-                <button id="delete_genogram" class="dropdown-item" type="button" data-toggle="modal" data-target="#confirm-delete">Reset</button>
+                <!--<button id="upload_genogram" class="dropdown-item" type="button">Upload</button>-->
+                <button id="delete_genogram" class="dropdown-item" type="button" data-toggle="modal" data-target="#warning-modal">Reset</button>
             </div>
         </div>
 
         <!-- Toolbar -->
         <div id="toolbox" class="btn-group-vertical">
-            <button type="button" class="btn btn-success fa fa-user-plus" data-toggle="modal" data-target="#createModal" aria-hidden="true"/>
-            <button id="edit_button" type="button" class="btn btn-light fa fa-pencil-square-o" data-toggle="modal" data-target="#editModal" aria-hidden="true" disabled/>
-            <button id="delete_button" type="button" class="btn btn-danger fa fa-times" aria-hidden="true" disabled/>
-            <button id="download-image" class="btn btn-light fa fa-download" aria-hidden="true"/>
-            <!--<button id="delete_graph_button" class="btn btn-danger">Reset</button>-->
+            <div class="btn-group-vertical">
+                <button id="create_button" type="button" class="btn btn-outline-success fa fa-user-plus" data-toggle="modal" data-target="#createModal" aria-hidden="true" title="Add element"></button>
+                <button id="edit_button" type="button" class="btn btn-outline-dark fa fa-pencil-square-o" data-toggle="modal" data-target="#editModal" aria-hidden="true" title="Edit element" disabled></button>
+                <button id="delete_button" type="button" class="btn btn-outline-danger fa fa-times" aria-hidden="true" title="Remove element" disabled></button>
+            </div>
+
+            <div class="btn-group-vertical">
+                <button id="create_marriage_button" type="button" class="btn btn-outline-dark fa fa-arrows-h" aria-hidden="true" title="Create marriage link"></button>
+                <button id="create_descendancy_button" type="button" class="btn btn-outline-dark fa fa-arrows-v" aria-hidden="true" title="Create descendancy link"></button>
+            </div>
+
+            <div class="btn-group-vertical">
+                <button id="download-image" type="button" class="btn btn-outline-dark fa fa-download" aria-hidden="true" title="Download PNG"></button>
+            </div>
         </div>
 
         <!-- Modal for Create -->
@@ -50,49 +59,51 @@
                         </button>
                     </div>
 
-                    <div id="create_form" class="modal-body">
+                    <div class="modal-body">
+                        <form id="create_form" role="form">
 
-                        <!-- Name -->
-                        <div class="form-group">
-                            <label for="exampleFormControlInput1">Name</label>
-                            <input id="create_name" class="form-control" id="exampleFormControlInput1" placeholder="Name">
-                        </div>
+                            <!-- Name -->
+                            <div class="form-group">
+                                <label for="exampleFormControlInput1">Name</label>
+                                <input id="create_name" class="form-control" id="exampleFormControlInput1" placeholder="Name">
+                            </div>
 
-                        <!-- Gender -->
-                        <label>Gender: </label>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input id="create_gender_male" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="Male" checked>
-                                Male
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input id="create_gender_female" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="Female">
-                                Female
-                            </label>
-                        </div>
+                            <!-- Gender -->
+                            <label>Gender: </label>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input id="create_gender_male" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="Male" checked>
+                                    Male
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input id="create_gender_female" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="Female">
+                                    Female
+                                </label>
+                            </div>
 
-                        <!-- Conditions -->
-                        <label>Conditions: </label>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input id="create_cond_BC" class="form-check-input" type="checkbox" value="breast_cancer">
-                                Breast Cancer
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input id="create_cond_DB" class="form-check-input" type="checkbox" value="diabetes">
-                                Diabetes
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input id="create_cond_HD" class="form-check-input" type="checkbox" value="heart_disease">
-                                Heart Disease
-                            </label>
-                        </div>
+                            <!-- Conditions -->
+                            <label>Conditions: </label>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input id="create_cond_BC" class="form-check-input" type="checkbox" value="breast_cancer">
+                                    Breast Cancer
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input id="create_cond_DB" class="form-check-input" type="checkbox" value="diabetes">
+                                    Diabetes
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input id="create_cond_HD" class="form-check-input" type="checkbox" value="heart_disease">
+                                    Heart Disease
+                                </label>
+                            </div>
+                        </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -115,50 +126,52 @@
                         </button>
                     </div>
 
-                    <div id="edit_form" class="modal-body">
+                    <div class="modal-body">
+                        <form id="edit_form" role="form">
 
-                        <!-- Name -->
-                        <div class="form-group">
-                            <label for="exampleFormControlInput1">Name</label>
+                            <!-- Name -->
+                            <div class="form-group">
+                                <label for="exampleFormControlInput1">Name</label>
 
-                            <input class="form-control" id="edit_name" placeholder="Name">
-                        </div>
+                                <input class="form-control" id="edit_name" placeholder="Name">
+                            </div>
 
-                        <!-- Gender -->
-                        <label>Gender: </label>
-                        <div class="form-check" disabled>
-                            <label class="form-check-label">
-                                <input class="form-check-input" type="radio" name="exampleRadios" id="edit_gender_male" value="Male" disabled>
-                                Male
-                            </label>
-                        </div>
-                        <div class="form-check" disabled>
-                            <label class="form-check-label">
-                                <input class="form-check-input" type="radio" name="exampleRadios" id="edit_gender_female" value="Female" disabled>
-                                Female
-                            </label>
-                        </div>
+                            <!-- Gender -->
+                            <label>Gender: </label>
+                            <div class="form-check" disabled>
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="exampleRadios" id="edit_gender_male" value="Male" disabled>
+                                    Male
+                                </label>
+                            </div>
+                            <div class="form-check" disabled>
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="exampleRadios" id="edit_gender_female" value="Female" disabled>
+                                    Female
+                                </label>
+                            </div>
 
-                        <!-- Conditions -->
-                        <label>Conditions: </label>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input id="edit_cond_BC" class="form-check-input" type="checkbox" value="breast_cancer">
-                                Breast Cancer
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input id="edit_cond_DB" class="form-check-input" type="checkbox" value="diabetes">
-                                Diabetes
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input id="edit_cond_HD" class="form-check-input" type="checkbox" value="heart_disease">
-                                Heart Disease
-                            </label>
-                        </div>
+                            <!-- Conditions -->
+                            <label>Conditions: </label>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input id="edit_cond_BC" class="form-check-input" type="checkbox" value="breast_cancer">
+                                    Breast Cancer
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input id="edit_cond_DB" class="form-check-input" type="checkbox" value="diabetes">
+                                    Diabetes
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input id="edit_cond_HD" class="form-check-input" type="checkbox" value="heart_disease">
+                                    Heart Disease
+                                </label>
+                            </div>
+                        </form>
 
                     </div>
                     <div class="modal-footer">
@@ -240,6 +253,108 @@
             var genogram = new Genogram(svg, family, descendants, marriage);
             genogram.setIdCt(family.length);
 
+            // On create button click
+            document.getElementById("create_button").addEventListener("click", function () {
+                document.getElementById("create_form").reset();
+            });
+
+            // On create element
+            document.getElementById("save_create").addEventListener("click", function(){
+                var newInfo = {};
+
+                newInfo.name = document.getElementById("create_name").value;
+
+                if(document.getElementById("create_gender_male").checked){
+                    newInfo.gender = "M";
+
+                }else{
+                    newInfo.gender = "F";
+                }
+
+                newInfo.conditions = [];
+
+                for( var k in genogram.conditions){
+
+                    var cond = genogram.conditions[k];
+
+                    if(document.getElementById("create_cond_" + cond).checked){
+                        newInfo.conditions.push(cond);
+                    }
+                }
+
+                genogram.addElement(newInfo)
+            });
+
+            // On edit element
+            document.getElementById("edit_button").addEventListener("click", function(){
+
+                // Clear the form
+                document.getElementById("edit_form").reset();
+
+                var d = genogram.state.selectedNode;
+
+                document.getElementById("edit_name").value = d.name;
+
+                if(d.gender === "M"){
+                    document.getElementById("edit_gender_male").checked = true;
+                }else{
+                    document.getElementById("edit_gender_female").checked = true;
+                }
+
+                if(d.conditions.length > 0){
+                    d.conditions.forEach(function(cond){
+                        document.getElementById("edit_cond_" + cond).checked = true;
+                    });
+                }
+            });
+
+            // On save edit element
+            document.getElementById("save_edit").addEventListener("click", function(){
+                var updatedInfo = {};
+
+                updatedInfo.name = document.getElementById("edit_name").value;
+                if(document.getElementById("edit_gender_male").checked){
+                    updatedInfo.gender = "M";
+
+                }else{
+                    updatedInfo.gender = "F";
+                }
+
+
+                updatedInfo.conditions = [];
+
+                for(var k in genogram.conditions){
+
+                    var cond = genogram.conditions[k];
+
+                    if(document.getElementById("edit_cond_" + cond).checked){
+                        updatedInfo.conditions.push(cond);
+                    }
+                }
+
+                genogram.editElement(updatedInfo);
+            });
+
+            // On delete element
+            document.getElementById("delete_button").addEventListener("click", function(){
+                genogram.removeElement();
+            });
+
+            // On delete graph
+            document.getElementById("confirm-action").addEventListener("click", function(){
+                genogram.deleteGenogram(false);
+            });
+
+            // On create marriage button
+            document.getElementById("create_marriage_button").addEventListener("click", function(){
+                genogram.activateDrawMarriage();
+            });
+
+            // On create descendancy button
+            document.getElementById("create_descendancy_button").addEventListener("click", function(){
+                genogram.activateDrawDescendancy();
+            });
+
             // On download image
             document.getElementById("download-image").addEventListener("click", function() {
                 var mySVG = document.getElementById('main-svg');
@@ -262,140 +377,6 @@
                     //document.body.appendChild(a);
                     a.click();
                 }
-            });
-
-            // On create element
-            document.getElementById("save_create").addEventListener("click", function(){
-                var d ={x: 250, y: 50};
-
-                d.id = genogram.idct;
-                d.abrev = genogram.createAbrev(genogram.idct);
-                genogram.idct++;
-
-                d.name = document.getElementById("create_name").value;
-
-                if(document.getElementById("create_gender_male").checked){
-                    d.gender = "M";
-
-                }else{
-                    d.gender = "F";
-                }
-
-                d.gen = null;
-                d.conditions = [];
-
-                for( var k in genogram.conditions){
-
-                    var cond = genogram.conditions[k];
-
-                    if(document.getElementById("create_cond_" + cond).checked){
-                        d.conditions.push(cond);
-                    }
-                }
-
-                genogram.addElement(d)
-            });
-
-            // On edit element
-            document.getElementById("edit_button").addEventListener("click", function(){
-                var d = genogram.state.selectedNode;
-
-                document.getElementById("edit_name").value = d.name;
-
-                if(d.gender === "M"){
-                    document.getElementById("edit_gender_male").checked = true;
-                }else{
-                    document.getElementById("edit_gender_female").checked = true;
-                }
-
-                if(d.conditions.length > 0){
-                    d.conditions.forEach(function(cond){
-                        document.getElementById("edit_cond_" + cond).checked = true;
-                    });
-                }
-            });
-
-            // On save edit element
-            document.getElementById("save_edit").addEventListener("click", function(){
-
-                var d = genogram.state.selectedNode;
-
-                d.name = document.getElementById("edit_name").value;
-
-                if(document.getElementById("edit_gender_male").checked){
-                    d.gender = "M";
-
-                }else{
-                    d.gender = "F";
-                }
-
-                //TODO: should only add new ones
-                // d.conditions = [];
-
-                var newconditions = [];
-
-                for( var k in genogram.conditions){
-
-                    var cond = genogram.conditions[k];
-
-                    if(document.getElementById("edit_cond_" + cond).checked){
-                        // d.conditions.push(cond);
-                        newconditions.push(cond);
-                    }
-                }
-
-                // Styles to add
-                var to_remove = d.conditions.filter(function(i) {return newconditions.indexOf(i) < 0;});
-
-                var to_add = newconditions.filter(function(i) {return d.conditions.indexOf(i) < 0;});
-
-                var fig = genogram.nodes.filter(function(data){
-                    return data.id === d.id;
-                });
-
-                if(d.gender === 'M'){
-                    // TODO: Update conditions styles
-                    for(var k in to_add){
-
-                        var cond = newconditions[k];
-                        fig.append("rect")
-                            .attr("id", function(d){return "d" + d.id + cond})
-                            .attr("x", function(d) { return - genogram.consts.nodeRadius; })
-                            .attr("y", function(d) { return - genogram.consts.nodeRadius; })
-                            .attr("width", function (d) { return genogram.consts.nodeRadius * 2.0; })
-                            .attr("height", function (d) { return genogram.consts.nodeRadius * 2.0; })
-                            .attr("style", "fill: url(#" + cond +"); stroke: #333;stroke-width: 2px;");
-                    }
-                }else{
-                    // TODO: Update conditions styles
-                    for(var k in to_add){
-                        var cond = newconditions[k];
-                        fig.append('circle')
-                            .attr("id", function(d){return "d" + d.id + cond})
-                            .attr("r", String(genogram.consts.nodeRadius))
-                            .attr("style", "fill: url(#" + cond +"); stroke: #333;stroke-width: 2px;");
-                    }
-                }
-
-                for(var k in to_remove){
-                    var cond = d.conditions[k];
-                    document.getElementById("d" + d.id + cond).remove();
-                }
-
-                d.conditions = newconditions;
-
-                genogram.updateLegend(undefined, true);
-                // genogram.updateGraph(); // Wont update since we did not add anything new
-            });
-
-            // On delete element
-            document.getElementById("delete_button").addEventListener("click", function(){
-                genogram.removeElement();
-            });
-
-            // On delete graph
-            document.getElementById("confirm-action").addEventListener("click", function(){
-                genogram.deleteGenogram(false);
             });
 
             // On window resize
