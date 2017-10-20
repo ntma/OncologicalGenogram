@@ -19,9 +19,13 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
     </head>
     <body>
-        <!-- Info -->
-        <div id="info" class="btn-group-vertical">
-            <button type="button" class="btn btn-outline-secondary fa fa-github" onclick="window.location.href='https://github.com/ntma/OncologicalGenogram'"/>
+        <!-- Menu -->
+        <div id="menu" class="dropdown">
+            <button class="btn btn-outline-dark dropdown-toggle fa fa-bars" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+            <div id="menu-dropdown" class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu">
+                <button id="upload_genogram" class="dropdown-item" type="button">Upload</button>
+                <button id="delete_genogram" class="dropdown-item" type="button" data-toggle="modal" data-target="#confirm-delete">Reset</button>
+            </div>
         </div>
 
         <!-- Toolbar -->
@@ -32,7 +36,6 @@
             <button id="download-image" class="btn btn-light fa fa-download" aria-hidden="true"/>
             <!--<button id="delete_graph_button" class="btn btn-danger">Reset</button>-->
         </div>
-
 
         <!-- Modal for Create -->
         <div class="modal fade" id="createModal" tabindex="1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -166,6 +169,24 @@
             </div>
         </div>
 
+        <!-- Modal for warnings -->
+        <div class="modal fade" id="warning-modal" tabindex="-1" role="dialog" aria-labelledby="modalWarnings" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modal-warnings-header">Confirm delete?</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button id="confirm-action" type="button" class="btn btn-danger btn-ok" data-dismiss="modal">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script>
 
             // warn the user when leaving
@@ -272,10 +293,7 @@
                     }
                 }
 
-                genogram.elements.push(d);
-
-                genogram.updateLegend(d);
-                genogram.updateGraph();
+                genogram.addElement(d)
             });
 
             // On edit element
@@ -376,9 +394,9 @@
             });
 
             // On delete graph
-//            document.getElementById("delete_graph").addEventListener("click", function(){
-//                genogram.deleteGraph(false);
-//            });
+            document.getElementById("confirm-action").addEventListener("click", function(){
+                genogram.deleteGenogram(false);
+            });
 
             // On window resize
             window.onresize = function(){

@@ -239,19 +239,25 @@ Genogram.prototype.consts =  {
 
 // === Toolbar buttons protos ===
 // ==============================
-// TODO: This has to remove ongoing states/events/structures
-Genogram.prototype.deleteGenogram = function(skipPrompt){
-    var thisGenogram = this,
-        doDelete = true;
-    if (!skipPrompt){
-        doDelete = window.confirm("Press OK to delete this graph");
+Genogram.prototype.deleteGenogram = function(){
+    var thisGenogram = this;
+
+    // Remove selections
+    if(thisGenogram.state.selectedNode){
+        thisGenogram.removeSelectFromNode();
     }
-    if(doDelete){
-        thisGenogram.elements = [];
-        thisGenogram.descendancy = [];
-        thisGenogram.marriage = [];
-        thisGenogram.updateGraph();
+    if(thisGenogram.state.selectedEdge){
+        thisGenogram.removeSelectFromEdge();
     }
+
+    // Clear support structures
+    thisGenogram.elements = [];
+    thisGenogram.descendancy = [];
+    thisGenogram.marriage = [];
+
+    // Update legend and svg components
+    thisGenogram.updateLegend();
+    thisGenogram.updateGraph();
 };
 
 Genogram.prototype.replaceSelectEdge = function(d3Path, edgeData){
@@ -605,6 +611,20 @@ Genogram.prototype.marriageLine = function(d){
     return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
 };
 
+Genogram.prototype.addElement = function(d) {
+
+    var thisGenogram = this;
+
+    // We have to set the gen of the first element
+    if(thisGenogram.elements.length === 0 && d.gen === null) {
+        d.gen = 0;
+    }
+
+    thisGenogram.elements.push(d);
+
+    thisGenogram.updateLegend(d);
+    thisGenogram.updateGraph();
+};
 
 Genogram.prototype.removeElement = function(){
     var thisGenogram = this;
