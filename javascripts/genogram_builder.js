@@ -239,19 +239,25 @@ Genogram.prototype.consts =  {
 
 // === Toolbar buttons protos ===
 // ==============================
-// TODO: This has to remove ongoing states/events/structures
-Genogram.prototype.deleteGenogram = function(skipPrompt){
-    var thisGenogram = this,
-        doDelete = true;
-    if (!skipPrompt){
-        doDelete = window.confirm("Press OK to delete this graph");
+Genogram.prototype.deleteGenogram = function(){
+    var thisGenogram = this;
+
+    // Remove selections
+    if(thisGenogram.state.selectedNode){
+        thisGenogram.removeSelectFromNode();
     }
-    if(doDelete){
-        thisGenogram.elements = [];
-        thisGenogram.descendancy = [];
-        thisGenogram.marriage = [];
-        thisGenogram.updateGraph();
+    if(thisGenogram.state.selectedEdge){
+        thisGenogram.removeSelectFromEdge();
     }
+
+    // Clear support structures
+    thisGenogram.elements = [];
+    thisGenogram.descendancy = [];
+    thisGenogram.marriage = [];
+
+    // Update legend and svg components
+    thisGenogram.updateLegend();
+    thisGenogram.updateGraph();
 };
 
 Genogram.prototype.replaceSelectEdge = function(d3Path, edgeData){
@@ -338,19 +344,24 @@ Genogram.prototype.circleMouseDown = function(d3node, d){
     state.mouseDownNode = d;
 
 
-    if (d3.event.shiftKey){
-        state.shiftNodeDrag = d3.event.shiftKey;
-        // reposition dragged directed edge
-        thisGenogram.dragLine.classed('hidden', false)
-            .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
-        // return;
-    }else if(d3.event.ctrlKey){
-        //TODO: HERE
-        state.ctrlNodeDrag = d3.event.ctrlKey;
-        // reposition dragged directed edge
+    if(state.shiftNodeDrag || state.ctrlNodeDrag){
         thisGenogram.dragLine.classed('hidden', false)
             .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
     }
+
+    // if (d3.event.shiftKey){
+    //     state.shiftNodeDrag = d3.event.shiftKey;
+    //     // reposition dragged directed edge
+    //     thisGenogram.dragLine.classed('hidden', false)
+    //         .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
+    //     // return;
+    // }else if(d3.event.ctrlKey){
+    //     //TODO: HERE
+    //     state.ctrlNodeDrag = d3.event.ctrlKey;
+    //     // reposition dragged directed edge
+    //     thisGenogram.dragLine.classed('hidden', false)
+    //         .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
+    // }
 
     return;
 };
@@ -525,6 +536,10 @@ Genogram.prototype.svgMouseUp = function(){
         // dragged from node
         state.shiftNodeDrag = false;
         thisGenogram.dragLine.classed("hidden", true);
+    } else if (state.ctrlNodeDrag){
+        // dragged from node
+        state.ctrlNodeDrag = false;
+        thisGenogram.dragLine.classed("hidden", true);
     }
     state.graphMouseDown = false;
 };
@@ -549,28 +564,27 @@ Genogram.prototype.zoomed = function(){
         .attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
 };
 
-// Genogram.prototype.dispatchCustomEvt = function(id, eventType){
-//     var el = document.getElementById(id);
-//
-//     var event; // The custom event that will be created
-//
-//     if (document.createEvent) {
-//         event = document.createEvent("HTMLEvents");
-//         event.initEvent(eventType, true, true);
-//     } else {
-//         event = document.createEventObject();
-//         event.eventType = eventType;
-//     }
-//
-//     event.eventName = eventType;
-//
-//     if (document.createEvent) {
-//         el.dispatchEvent(event);
-//     } else {
-//         el.fireEvent("on" + event.eventType, event);
-//     }
-// };
+// On activate create marriages
+Genogram.prototype.activateDrawMarriage = function(){
+    var thisGenogram = this;
 
+    if(thisGenogram.state.shiftNodeDrag){
+        thisGenogram.state.shiftNodeDrag = false;
+    }
+
+    thisGenogram.state.ctrlNodeDrag = true;
+};
+
+// On activate create marriages
+Genogram.prototype.activateDrawDescendancy = function(){
+    var thisGenogram = this;
+
+    if(thisGenogram.state.ctrlNodeDrag){
+        thisGenogram.state.ctrlNodeDrag = false;
+    }
+
+    thisGenogram.state.shiftNodeDrag = true;
+};
 
 // === Auxiliars ===
 // =================
@@ -605,6 +619,89 @@ Genogram.prototype.marriageLine = function(d){
     return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
 };
 
+Genogram.prototype.addElement = function(values) {
+    var thisGenogram = this;
+
+    values.id = genogram.idct;
+    values.abrev = genogram.createAbrev(genogram.idct);
+    genogram.idct++;
+
+    values.gen = null;
+
+    var bb;
+    // We have to set the gen of the first element
+    if(thisGenogram.elements.length === 0 && values.gen === null) {
+        // Initial element spawn
+        values.gen = 5;
+        bb = thisGenogram.svg[0][0].getBBox();
+
+        values.x = bb.x + bb.width / 2.0;
+        values.y = bb.y + bb.height / 2.0;
+
+    } else{
+        // Initial element spawn
+        bb = thisGenogram.svgG[0][0].getBBox();
+        values.x = bb.x + bb.width + 20;
+        values.y = bb.y + bb.height + 20;
+    }
+
+    thisGenogram.elements.push(values);
+    thisGenogram.updateLegend(values);
+    thisGenogram.updateGraph();
+};
+
+Genogram.prototype.editElement = function(updatedInfo) {
+    var thisGenogram = this;
+
+    var d = thisGenogram.state.selectedNode;
+
+    d.name = updatedInfo.name;
+    d.gender = updatedInfo.name;
+
+    var newconditions = updatedInfo.conditions;
+
+    // Styles to add
+    var to_remove = d.conditions.filter(function(i) {return newconditions.indexOf(i) < 0;});
+    var to_add = newconditions.filter(function(i) {return d.conditions.indexOf(i) < 0;});
+
+    var fig = genogram.nodes.filter(function(data){
+        return data.id === d.id;
+    });
+
+    if(d.gender === 'M'){
+        // TODO: Update conditions styles
+        for(var k in to_add){
+
+            var cond = newconditions[k];
+            fig.append("rect")
+                .attr("id", function(d){return "d" + d.id + cond})
+                .attr("x", function(d) { return - genogram.consts.nodeRadius; })
+                .attr("y", function(d) { return - genogram.consts.nodeRadius; })
+                .attr("width", function (d) { return genogram.consts.nodeRadius * 2.0; })
+                .attr("height", function (d) { return genogram.consts.nodeRadius * 2.0; })
+                .attr("style", "fill: url(#" + cond +"); stroke: #333;stroke-width: 2px;");
+        }
+    }else{
+        // TODO: Update conditions styles
+        for(var k in to_add){
+            var cond = newconditions[k];
+            fig.append('circle')
+                .attr("id", function(d){return "d" + d.id + cond})
+                .attr("r", String(genogram.consts.nodeRadius))
+                .attr("style", "fill: url(#" + cond +"); stroke: #333;stroke-width: 2px;");
+        }
+    }
+
+    for(var k in to_remove){
+        var cond = d.conditions[k];
+        document.getElementById("d" + d.id + cond).remove();
+    }
+
+    d.conditions = newconditions;
+
+    genogram.updateLegend(undefined, true);
+    // genogram.updateGraph(); // Wont update since we did not add anything new
+};
 
 Genogram.prototype.removeElement = function(){
     var thisGenogram = this;
