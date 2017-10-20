@@ -656,7 +656,7 @@ Genogram.prototype.editElement = function(updatedInfo) {
     var d = thisGenogram.state.selectedNode;
 
     d.name = updatedInfo.name;
-    d.gender = updatedInfo.name;
+    d.gender = updatedInfo.gender;
 
     var newconditions = updatedInfo.conditions;
 
