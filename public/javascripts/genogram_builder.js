@@ -4,6 +4,7 @@
 var Genogram = function(svg, elements, descendancy, marriage){
     var thisGenogram = this;
     thisGenogram.idct = 0;
+    thisGenogram.version = 1.0;
 
     thisGenogram.genDistance = 50;
 
@@ -168,17 +169,6 @@ var Genogram = function(svg, elements, descendancy, marriage){
 
     svg.call(dragSvg).on("dblclick.zoom", null);
 
-
-    // // handle download data
-    // d3.select("#download-input").on("click", function(){
-    //     var saveEdges = [];
-    //     thisGenogram.descendancy.forEach(function(val, i){
-    //         saveEdges.push({source: val.source.id, target: val.target.id});
-    //     });
-    //     var blob = new Blob([window.JSON.stringify({"nodes": thisGenogram.elements, "descendancy": saveEdges})], {type: "text/plain;charset=utf-8"});
-    //     saveAs(blob, "mydag.json");
-    // });
-    //
     // // handle uploaded data
     // d3.select("#upload-input").on("click", function(){
     //     document.getElementById("hidden-file-upload").click();
@@ -589,6 +579,74 @@ Genogram.prototype.activateDrawDescendancy = function(){
 // === Auxiliars ===
 // =================
 
+// === Get genogram (without refs) ===
+Genogram.prototype.getJson = function(){
+    var thisGenogram = this;
+
+    var descendancyIds = [];
+    var marriageIds = [];
+    thisGenogram.descendancy.forEach(function(val, i){
+        // Marriage <-> Element
+        descendancyIds.push({
+            source: {
+                source: val.source.source.id,
+                target: val.source.target.id
+            },
+            target: val.target.id
+        });
+    });
+
+    thisGenogram.marriage.forEach(function(val, i){
+        // Element <-> Element
+        marriageIds.push({
+            source: val.source.id,
+            target: val.target.id
+        });
+    });
+
+    return {version: thisGenogram.version, nodes: thisGenogram.elements, descendancy: descendancyIds, marriage: marriageIds};
+};
+
+Genogram.prototype.setJson = function(json){
+
+    // First delete the current genogram
+    genogram.deleteGenogram();
+
+    // Set the nodes
+    genogram.elements = json.nodes;
+    genogram.setIdCt(json.nodes.length + 1);
+
+    var newDescendancy = json.descendancy;
+    var newMarriage = json.marriage;
+
+    // Set the marriage links
+    newMarriage.forEach(function(e, i){
+        newMarriage[i] = {
+            source: genogram.elements.filter(function(n){return n.id === e.source;})[0],
+            target: genogram.elements.filter(function(n){return n.id === e.target;})[0]
+        };
+    });
+
+    genogram.marriage = newMarriage;
+
+    // Set the descendancy links
+    newDescendancy.forEach(function(e, i){
+        newDescendancy[i] = {
+            source: genogram.marriage.filter(function(n){
+                // TODO: this is really dirty...
+                return n.source.id === e.source.source && n.target.id === e.source.target;
+            })[0],
+            target: genogram.elements.filter(function(n){return n.id === e.target;})[0]
+        };
+    });
+
+    genogram.descendancy = newDescendancy;
+
+    // And finnaly, update legend and graph
+    genogram.updateLegend();
+    genogram.updateGraph();
+};
+
 // Create abbreviations for each node
 Genogram.prototype.createAbrev = function(id){
     if(id < 26){
@@ -895,6 +953,7 @@ Genogram.prototype.updateGraph = function(){
     // ==== DESCENDANCY PATHS ====
     // ==========================
     thisGenogram.descendancyLinks = thisGenogram.descendancyLinks.data(thisGenogram.descendancy, function(d){
+        // TODO: this ids are wrong
         return String(d.source.id) + "+" + String(d.target.id);
     });
 

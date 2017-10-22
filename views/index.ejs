@@ -23,8 +23,10 @@
         <div id="menu" class="dropdown">
             <button class="btn btn-outline-dark dropdown-toggle fa fa-bars" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu"></button>
             <div id="menu-dropdown" class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu">
-                <!--<button id="upload_genogram" class="dropdown-item" type="button">Upload</button>-->
-                <button id="delete_genogram" class="dropdown-item" type="button" data-toggle="modal" data-target="#warning-modal">Reset</button>
+                <button id="upload_file" class="dropdown-item" type="button" title="Open file">Open file</button>
+                <input type="file" id="hidden_upload_file">
+                <button id="download_genogram" class="dropdown-item" type="button" title="Save file">Save file</button>
+                <button id="delete_genogram" class="dropdown-item" type="button" data-toggle="modal" data-target="#warning-modal" title="Delete genogram">Reset</button>
             </div>
         </div>
 
@@ -355,6 +357,21 @@
                 genogram.activateDrawDescendancy();
             });
 
+            // On download file
+            document.getElementById("download_genogram").addEventListener("click", function() {
+                // Get the genogram in json
+                var json = genogram.getJson();
+
+                var blob = new Blob([window.JSON.stringify(json)], {type: "text/plain;charset=utf-8"});
+                var url = window.URL.createObjectURL(blob);
+
+                var a = document.createElement("a");
+                a.style = "display: none";
+                a.href = url;
+                a.download = "oncological_genogram.json";
+                a.click();
+            });
+
             // On download image
             document.getElementById("download-image").addEventListener("click", function() {
                 var mySVG = document.getElementById('main-svg');
@@ -376,6 +393,34 @@
                     a.href = canvas.toDataURL('image/png');
                     //document.body.appendChild(a);
                     a.click();
+                }
+            });
+
+            // On upload
+            document.getElementById("upload_file").addEventListener("click", function(){
+                document.getElementById("hidden_upload_file").click();
+            });
+
+            // On upload file
+            document.getElementById("hidden_upload_file").addEventListener("change", function(){
+                if (window.File && window.FileReader && window.FileList && window.Blob) {
+                    var uploadFile = this.files[0];
+                    var filereader = new window.FileReader();
+
+                    filereader.onload = function(){
+                        var txtRes = filereader.result;
+
+                        // TODO better error handling
+                        try{
+                            genogram.setJson(JSON.parse(txtRes));
+                        }catch(err){
+//                            TODO: error modal here
+//                            window.alert("Error parsing uploaded file\nerror message: " + err.message);
+                            return;
+                        }
+                    };
+
+                    filereader.readAsText(uploadFile);
                 }
             });
 
