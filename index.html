@@ -23,8 +23,10 @@
         <div id="menu" class="dropdown">
             <button class="btn btn-outline-dark dropdown-toggle fa fa-bars" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu"></button>
             <div id="menu-dropdown" class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu">
-                <!--<button id="upload_genogram" class="dropdown-item" type="button">Upload</button>-->
-                <button id="delete_genogram" class="dropdown-item" type="button" data-toggle="modal" data-target="#warning-modal">Reset</button>
+                <button id="upload_file" class="dropdown-item" type="button" title="Open file">Open file</button>
+                <input type="file" id="hidden_upload_file">
+                <button id="download_genogram" class="dropdown-item" type="button" title="Save file">Save file</button>
+                <button id="delete_genogram" class="dropdown-item" type="button" data-toggle="modal" data-target="#warning-modal" title="Delete genogram">Reset</button>
             </div>
         </div>
 
@@ -218,41 +220,16 @@
             var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
                 height =  window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
 
-            var xLoc = width/2 - 25,
-                yLoc = 100;
-
             // Dummy family data
-            var family = [
-                {abrev: 'A',name: 'João',     gender: 'M', gen: 5, id: 0, conditions: [], x: xLoc, y: yLoc },
-                {abrev: 'B',name: 'Marta',    gender: 'F', gen: 6, id: 1, conditions: ['BC'], x: xLoc + 50, y: yLoc + 50},
-                {abrev: 'C',name: 'Alex',     gender: 'M', gen: 6, id: 2, conditions: [], x: xLoc - 50, y: yLoc + 50},
-                {abrev: 'D',name: 'Rita',     gender: 'F', gen: 7, id: 3, conditions: [], x: xLoc + 50 + 20, y: yLoc + 100},
-                {abrev: 'E',name: 'Fabio',    gender: 'M', gen: 7, id: 4, conditions: ['DB'], x: xLoc + 50 - 20, y: yLoc + 100},
-                {abrev: 'F',name: 'Maria',    gender: 'F', gen: 7, id: 5, conditions: ['HD'], x: xLoc - 50 - 20, y: yLoc + 100},
-                {abrev: 'G',name: 'José',     gender: 'M', gen: 7, id: 6, conditions: [], x: xLoc - 50 + 20, y: yLoc + 100},
-                {abrev: 'H',name: 'Fernanda', gender: 'F', gen: 5, id: 7, conditions: ['HD', 'DB', 'BC'], x: xLoc + 50, y: yLoc}
-            ]
+            var family = []
+            var marriage = []
+            var descendants = []
 
-            // Dummy marriage data
-            var marriage = [
-                {source: family[1], target: family[2]},
-                {source: family[3], target: family[4]},
-                {source: family[5], target: family[6]}
-            ]
-
-            // Dummy descendancy data
-            var descendants = [
-                {source: marriage[0], target: family[0]},
-                {source: marriage[1], target: family[1]},
-                {source: marriage[2], target: family[2]},
-                {source: marriage[0], target: family[7]}
-            ]
-
+            // Create svg
             var svg = d3.select("body").append("svg")
                 .attr("id","main-svg")
                 .attr("width", width)
                 .attr("height", height);
-
 
             // Create the genogram class
             var genogram = new Genogram(svg, family, descendants, marriage);
@@ -360,6 +337,21 @@
                 genogram.activateDrawDescendancy();
             });
 
+            // On download file
+            document.getElementById("download_genogram").addEventListener("click", function() {
+                // Get the genogram in json
+                var json = genogram.getJson();
+
+                var blob = new Blob([window.JSON.stringify(json)], {type: "text/plain;charset=utf-8"});
+                var url = window.URL.createObjectURL(blob);
+
+                var a = document.createElement("a");
+                a.style = "display: none";
+                a.href = url;
+                a.download = "oncological_genogram.json";
+                a.click();
+            });
+
             // On download image
             document.getElementById("download-image").addEventListener("click", function() {
                 var mySVG = document.getElementById('main-svg');
@@ -381,6 +373,34 @@
                     a.href = canvas.toDataURL('image/png');
                     //document.body.appendChild(a);
                     a.click();
+                }
+            });
+
+            // On upload
+            document.getElementById("upload_file").addEventListener("click", function(){
+                document.getElementById("hidden_upload_file").click();
+            });
+
+            // On upload file
+            document.getElementById("hidden_upload_file").addEventListener("change", function(){
+                if (window.File && window.FileReader && window.FileList && window.Blob) {
+                    var uploadFile = this.files[0];
+                    var filereader = new window.FileReader();
+
+                    filereader.onload = function(){
+                        var txtRes = filereader.result;
+
+                        // TODO better error handling
+                        try{
+                            genogram.setJson(JSON.parse(txtRes));
+                        }catch(err){
+//                            TODO: error modal here
+//                            window.alert("Error parsing uploaded file\nerror message: " + err.message);
+                            return;
+                        }
+                    };
+
+                    filereader.readAsText(uploadFile);
                 }
             });
 

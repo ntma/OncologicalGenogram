@@ -4,6 +4,7 @@
 var Genogram = function(svg, elements, descendancy, marriage){
     var thisGenogram = this;
     thisGenogram.idct = 0;
+    thisGenogram.version = 1.0;
 
     thisGenogram.genDistance = 50;
 
@@ -167,55 +168,6 @@ var Genogram = function(svg, elements, descendancy, marriage){
         });
 
     svg.call(dragSvg).on("dblclick.zoom", null);
-
-
-    // // handle download data
-    // d3.select("#download-input").on("click", function(){
-    //     var saveEdges = [];
-    //     thisGenogram.descendancy.forEach(function(val, i){
-    //         saveEdges.push({source: val.source.id, target: val.target.id});
-    //     });
-    //     var blob = new Blob([window.JSON.stringify({"nodes": thisGenogram.elements, "descendancy": saveEdges})], {type: "text/plain;charset=utf-8"});
-    //     saveAs(blob, "mydag.json");
-    // });
-    //
-    // // handle uploaded data
-    // d3.select("#upload-input").on("click", function(){
-    //     document.getElementById("hidden-file-upload").click();
-    // });
-    // d3.select("#hidden-file-upload").on("change", function(){
-    //     if (window.File && window.FileReader && window.FileList && window.Blob) {
-    //         var uploadFile = this.files[0];
-    //         var filereader = new window.FileReader();
-    //
-    //         filereader.onload = function(){
-    //             var txtRes = filereader.result;
-    //             // TODO better error handling
-    //             try{
-    //                 var jsonObj = JSON.parse(txtRes);
-    //                 thisGenogram.deleteGraph(true);
-    //                 thisGenogram.elements = jsonObj.elements;
-    //                 thisGenogram.setIdCt(jsonObj.elements.length + 1);
-    //                 var newEdges = jsonObj.descendancy;
-    //                 newEdges.forEach(function(e, i){
-    //                     newEdges[i] = {source: thisGenogram.elements.filter(function(n){return n.id == e.source;})[0],
-    //                         target: thisGenogram.elements.filter(function(n){return n.id == e.target;})[0]};
-    //                 });
-    //                 thisGenogram.descendancy = newEdges;
-    //                 thisGenogram.updateGraph();
-    //             }catch(err){
-    //                 window.alert("Error parsing uploaded file\nerror message: " + err.message);
-    //                 return;
-    //             }
-    //         };
-    //         filereader.readAsText(uploadFile);
-    //
-    //     } else {
-    //         alert("Your browser won't let you save this graph -- try upgrading your browser to IE 10+ or Chrome or Firefox.");
-    //     }
-    //
-    // });
-
 };
 
 // TODO: remove this
@@ -231,8 +183,8 @@ Genogram.prototype.consts =  {
     graphClass: "graph",
     activeEditId: "active-editing",
     // BACKSPACE_KEY: 8,
-    DELETE_KEY: 46,
-    ENTER_KEY: 13,
+    // DELETE_KEY: 46,
+    // ENTER_KEY: 13,
     nodeRadius: 10,
     abrevList: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 };
@@ -337,7 +289,7 @@ Genogram.prototype.pathMouseDown = function(d3path, d){
 };
 
 // mousedown on node
-Genogram.prototype.circleMouseDown = function(d3node, d){
+Genogram.prototype.nodeMouseDown = function(d3node, d){
     var thisGenogram = this,
         state = thisGenogram.state;
     d3.event.stopPropagation();
@@ -348,26 +300,10 @@ Genogram.prototype.circleMouseDown = function(d3node, d){
         thisGenogram.dragLine.classed('hidden', false)
             .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
     }
-
-    // if (d3.event.shiftKey){
-    //     state.shiftNodeDrag = d3.event.shiftKey;
-    //     // reposition dragged directed edge
-    //     thisGenogram.dragLine.classed('hidden', false)
-    //         .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
-    //     // return;
-    // }else if(d3.event.ctrlKey){
-    //     //TODO: HERE
-    //     state.ctrlNodeDrag = d3.event.ctrlKey;
-    //     // reposition dragged directed edge
-    //     thisGenogram.dragLine.classed('hidden', false)
-    //         .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
-    // }
-
-    return;
 };
 
 // mouseup on nodes
-Genogram.prototype.circleMouseUp = function(d3node, d){
+Genogram.prototype.nodeMouseUp = function(d3node, targetNode){
     var thisGenogram = this,
         state = thisGenogram.state,
         consts = thisGenogram.consts;
@@ -386,101 +322,85 @@ Genogram.prototype.circleMouseUp = function(d3node, d){
     state.ctrlNodeDrag = false;
     d3node.classed(consts.connectClass, false);
 
-    var mouseDownNode = state.mouseDownNode;
+    var sourceNode = state.mouseDownNode;
 
-    if (!mouseDownNode) return;
+    if (!sourceNode) return;
 
     thisGenogram.dragLine.classed("hidden", true);
 
-    if (mouseDownNode !== d){
+    if (sourceNode !== targetNode){
 
         // DESCENDANCY/ASCENDANCY
         if(dragType === "SHIFT"){
-            //TODO: IF HAS MARRIAGE, we have to properlly handle
-            //TODO: IF has no marriage, we have to set it to null
-            var mar= null;
+            var foundMarriage = null;
 
-            var found = false;
+            thisGenogram.marriage.some(function(elem, index, arr){
+                if(elem.source.id === sourceNode.id || elem.target.id === sourceNode.id){
+                    foundMarriage = elem;
 
-            thisGenogram.marriage.forEach(function(elem, index, arr){
-                if(elem.source.id === mouseDownNode.id
-                    || elem.target.id === mouseDownNode.id){
-                    found = !found;
-                    mar = elem;
+                    return true;
                 }
             });
 
-            if(!found)
-                mar = {source: mouseDownNode, target: mouseDownNode};
+            // Create one if we did not find any
+            if(!foundMarriage){
+                foundMarriage = {source: sourceNode, target: sourceNode};
+
+                thisGenogram.marriage.push(foundMarriage);
+            }
 
             // Check if we need to set the gen
-            if(d.gen === null){
-                d.gen = mouseDownNode.gen - 1;
-                d.y = d.gen * thisGenogram.genDistance;
-            } else if (mouseDownNode.gen === null){
-                mouseDownNode.gen = d.gen + 1;
-                mouseDownNode.y = mouseDownNode.gen * thisGenogram.genDistance;
+            if(targetNode.gen === null){
+                targetNode.gen = sourceNode.gen + 1;
+                targetNode.y = targetNode.gen * thisGenogram.genDistance;
+            } else if (sourceNode.gen === null){
+                sourceNode.gen = targetNode.gen - 1;
+                sourceNode.y = sourceNode.gen * thisGenogram.genDistance;
             }
 
-            // we're in a different node: create new edge for mousedown edge and add to graph
-            var newEdge = {source: mar, target: d};
-            var filtRes = thisGenogram.descendancyLinks.filter(function(d){
-                if (d.source === newEdge.target && d.target === newEdge.source){
-                    thisGenogram.descendancy.splice(thisGenogram.descendancy.indexOf(d), 1);
-                }
-                return d.source === newEdge.source && d.target === newEdge.target;
-            });
-            if (!filtRes[0].length){
-                thisGenogram.descendancy.push(newEdge);
-
-                // If the marriage did not exist
-                if(!found)
-                    thisGenogram.marriage.push(mar);
-                thisGenogram.updateGraph();
-            }
-
-            // MARRIAGE
-        }else{
-            //TODO: IF HAS MARRIAGE, we have to properlly handle
-            //TODO: IF has no marriage, we have to set it to null
-
-            var found = false;
-            thisGenogram.marriage.forEach(function(ford, index, theArray) {
-                // console.log(d.id)
-                // console.log(ford.source.id)
-
-                if(d.id === ford.source.id){
-                    theArray[index].target = mouseDownNode;
-
-                    // ford.target = d;
-                    found = !found;
-                }else if(mouseDownNode.id === ford.source.id){
-                    theArray[index].target = d;
-
-                    // ford.target = d;
-                    found = !found;
-                }
-            });
-
-
-            // Check if we need to set the gen
-            if(d.gen === null){
-                d.gen = mouseDownNode.gen;
-                d.y = d.gen * thisGenogram.genDistance;
-
-            } else if (mouseDownNode.gen === null){
-                mouseDownNode.gen = d.gen;
-                mouseDownNode.y = mouseDownNode.gen * thisGenogram.genDistance;
-            }
-
-
-            if(!found){
-                var newEdge = {source: mouseDownNode, target: d};
-                thisGenogram.marriage.push(newEdge);
-            }
+            thisGenogram.descendancy.push({source: foundMarriage, target: targetNode});
 
             thisGenogram.updateGraph();
 
+        // MARRIAGE
+        }else{
+            var foundState = 0;
+            thisGenogram.marriage.some(function(elem){
+
+                if(elem.source.id === targetNode.id || elem.source.id === sourceNode.id){
+                    if(elem.source.id === elem.target.id) {
+                        foundState = 1;
+                    }else{
+                        foundState = 2;
+                    }
+
+                    return true;
+                }
+            });
+
+            // If === 2, means that we already have a married couple
+            //    === 0, means we did not find marriage
+            //    === 1, means we found a marriage with one parent only
+            if(foundState !== 2) {
+
+                // Check if we need to set the gen
+                if (targetNode.gen === null) {
+                    targetNode.gen = sourceNode.gen;
+                    targetNode.y = targetNode.gen * thisGenogram.genDistance;
+
+                } else if (sourceNode.gen === null) {
+                    sourceNode.gen = targetNode.gen;
+                    sourceNode.y = sourceNode.gen * thisGenogram.genDistance;
+                }
+
+
+                if (!foundState) {
+                    // Add marriage
+                    thisGenogram.marriage.push({source: sourceNode, target: targetNode});
+                }
+
+                thisGenogram.updateGraph();
+            }
         }
     } else{
         // we're in the same node
@@ -495,8 +415,8 @@ Genogram.prototype.circleMouseUp = function(d3node, d){
             var prevNode = state.selectedNode;
 
             // If previous node and not the same
-            if (!prevNode || prevNode.id !== d.id){
-                thisGenogram.replaceSelectNode(d3node, d);
+            if (!prevNode || prevNode.id !== targetNode.id){
+                thisGenogram.replaceSelectNode(d3node, targetNode);
 
                 // Allow edit
                 document.getElementById("edit_button").disabled = false;
@@ -588,6 +508,74 @@ Genogram.prototype.activateDrawDescendancy = function(){
 
 // === Auxiliars ===
 // =================
+
+// === Get genogram (without refs) ===
+Genogram.prototype.getJson = function(){
+    var thisGenogram = this;
+
+    var descendancyIds = [];
+    var marriageIds = [];
+    thisGenogram.descendancy.forEach(function(val, i){
+        // Marriage <-> Element
+        descendancyIds.push({
+            source: {
+                source: val.source.source.id,
+                target: val.source.target.id
+            },
+            target: val.target.id
+        });
+    });
+
+    thisGenogram.marriage.forEach(function(val, i){
+        // Element <-> Element
+        marriageIds.push({
+            source: val.source.id,
+            target: val.target.id
+        });
+    });
+
+    return {version: thisGenogram.version, nodes: thisGenogram.elements, descendancy: descendancyIds, marriage: marriageIds};
+};
+
+Genogram.prototype.setJson = function(json){
+
+    // First delete the current genogram
+    genogram.deleteGenogram();
+
+    // Set the nodes
+    genogram.elements = json.nodes;
+    genogram.setIdCt(json.nodes.length + 1);
+
+    var newDescendancy = json.descendancy;
+    var newMarriage = json.marriage;
+
+    // Set the marriage links
+    newMarriage.forEach(function(e, i){
+        newMarriage[i] = {
+            source: genogram.elements.filter(function(n){return n.id === e.source;})[0],
+            target: genogram.elements.filter(function(n){return n.id === e.target;})[0]
+        };
+    });
+
+    genogram.marriage = newMarriage;
+
+    // Set the descendancy links
+    newDescendancy.forEach(function(e, i){
+        newDescendancy[i] = {
+            source: genogram.marriage.filter(function(n){
+                // TODO: this is really dirty...
+                return n.source.id === e.source.source && n.target.id === e.source.target;
+            })[0],
+            target: genogram.elements.filter(function(n){return n.id === e.target;})[0]
+        };
+    });
+
+    genogram.descendancy = newDescendancy;
+
+    // And finnaly, update legend and graph
+    genogram.updateLegend();
+    genogram.updateGraph();
+};
 
 // Create abbreviations for each node
 Genogram.prototype.createAbrev = function(id){
@@ -835,10 +823,10 @@ Genogram.prototype.updateGraph = function(){
             d3.select(this).classed(consts.connectClass, false);
         })
         .on("mousedown", function(d){
-            thisGenogram.circleMouseDown.call(thisGenogram, d3.select(this), d);
+            thisGenogram.nodeMouseDown.call(thisGenogram, d3.select(this), d);
         })
         .on("mouseup", function(d){
-            thisGenogram.circleMouseUp.call(thisGenogram, d3.select(this), d);
+            thisGenogram.nodeMouseUp.call(thisGenogram, d3.select(this), d);
         })
         .call(thisGenogram.drag);
 
@@ -895,6 +883,7 @@ Genogram.prototype.updateGraph = function(){
     // ==== DESCENDANCY PATHS ====
     // ==========================
     thisGenogram.descendancyLinks = thisGenogram.descendancyLinks.data(thisGenogram.descendancy, function(d){
+        // TODO: this ids are wrong
         return String(d.source.id) + "+" + String(d.target.id);
     });
 
