@@ -215,41 +215,16 @@
             var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
                 height =  window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
 
-            var xLoc = width/2 - 25,
-                yLoc = 100;
-
             // Dummy family data
-            var family = [
-                {abrev: 'A',name: 'João',     gender: 'M', gen: 5, id: 0, conditions: [], x: xLoc, y: yLoc },
-                {abrev: 'B',name: 'Marta',    gender: 'F', gen: 6, id: 1, conditions: ['BC'], x: xLoc + 50, y: yLoc + 50},
-                {abrev: 'C',name: 'Alex',     gender: 'M', gen: 6, id: 2, conditions: [], x: xLoc - 50, y: yLoc + 50},
-                {abrev: 'D',name: 'Rita',     gender: 'F', gen: 7, id: 3, conditions: [], x: xLoc + 50 + 20, y: yLoc + 100},
-                {abrev: 'E',name: 'Fabio',    gender: 'M', gen: 7, id: 4, conditions: ['DB'], x: xLoc + 50 - 20, y: yLoc + 100},
-                {abrev: 'F',name: 'Maria',    gender: 'F', gen: 7, id: 5, conditions: ['HD'], x: xLoc - 50 - 20, y: yLoc + 100},
-                {abrev: 'G',name: 'José',     gender: 'M', gen: 7, id: 6, conditions: [], x: xLoc - 50 + 20, y: yLoc + 100},
-                {abrev: 'H',name: 'Fernanda', gender: 'F', gen: 5, id: 7, conditions: ['HD', 'DB', 'BC'], x: xLoc + 50, y: yLoc}
-            ]
+            var family = []
+            var marriage = []
+            var descendants = []
 
-            // Dummy marriage data
-            var marriage = [
-                {source: family[1], target: family[2]},
-                {source: family[3], target: family[4]},
-                {source: family[5], target: family[6]}
-            ]
-
-            // Dummy descendancy data
-            var descendants = [
-                {source: marriage[0], target: family[0]},
-                {source: marriage[1], target: family[1]},
-                {source: marriage[2], target: family[2]},
-                {source: marriage[0], target: family[7]}
-            ]
-
+            // Create svg
             var svg = d3.select("body").append("svg")
                 .attr("id","main-svg")
                 .attr("width", width)
                 .attr("height", height);
-
 
             // Create the genogram class
             var genogram = new Genogram(svg, family, descendants, marriage);
