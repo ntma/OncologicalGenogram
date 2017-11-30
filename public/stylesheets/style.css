@@ -61,25 +61,26 @@ p{
   margin: 0 0.5em;
 }
 
-.memberG text{
-  pointer-events: none;
-}
-
 marker{
   fill: #333;
 }
 
 /* This has to be from svg side*/
-g.memberG circle,
-g.memberG rect{
-  /*fill: #F6FBFF !important;*/
+/*g.nodeElement circle,*/
+/*g.nodeElement rect{*/
+.female {
+  fill: #F6FBFF !important;
   stroke: #333 !important;
   stroke-width: 2px !important;
 }
 
-g.memberG:hover circle,
-g.memberG:hover rect{
+g.nodeElement:hover circle,
+g.nodeElement:hover rect{
   fill: rgb(100, 238, 241) !important;
+}
+
+g.nodeElement text{
+  pointer-events: none;
 }
 
 g.selected circle,

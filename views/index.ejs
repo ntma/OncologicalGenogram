@@ -12,7 +12,17 @@
 
         <script src="https://d3js.org/d3.v3.min.js"></script>
         <script src="https://d3js.org/d3-hierarchy.v1.min.js"></script>
-        <script src="javascripts/genogram_builder.js"></script>
+
+        <script src="javascripts/auxiliars/uuid.js"></script>
+        <script src="javascripts/auxiliars/shortnings.js"></script>
+
+        <script src="javascripts/family/Person.js"></script>
+        <script src="javascripts/family/Relationship.js"></script>
+        <script src="javascripts/family/FamilyMember.js"></script>
+        <script src="javascripts/family/Family.js"></script>
+        <script src="javascripts/d3js/D3Family.js"></script>
+        <script src="javascripts/GenogramLegend.js"></script>
+        <script src="javascripts/Genogram.js"></script>
 
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
@@ -154,24 +164,26 @@
                             </div>
 
                             <!-- Conditions -->
-                            <label>Conditions: </label>
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input id="edit_cond_BC" class="form-check-input" type="checkbox" value="breast_cancer">
-                                    Breast Cancer
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input id="edit_cond_DB" class="form-check-input" type="checkbox" value="diabetes">
-                                    Diabetes
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input id="edit_cond_HD" class="form-check-input" type="checkbox" value="heart_disease">
-                                    Heart Disease
-                                </label>
+                            <div id="conditions">
+                                <label>Conditions: </label>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input id="edit_cond_BC" class="form-check-input" type="checkbox" value="breast_cancer">
+                                        Breast Cancer
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input id="edit_cond_DB" class="form-check-input" type="checkbox" value="diabetes">
+                                        Diabetes
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input id="edit_cond_HD" class="form-check-input" type="checkbox" value="heart_disease">
+                                        Heart Disease
+                                    </label>
+                                </div>
                             </div>
                         </form>
 
@@ -215,11 +227,6 @@
             var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
                 height =  window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
 
-            // Dummy family data
-            var family = []
-            var marriage = []
-            var descendants = []
-
             // Create svg
             var svg = d3.select("body").append("svg")
                 .attr("id","main-svg")
@@ -227,8 +234,7 @@
                 .attr("height", height);
 
             // Create the genogram class
-            var genogram = new Genogram(svg, family, descendants, marriage);
-            genogram.setIdCt(family.length);
+            var genogram = new Genogram(svg);
 
             // On create button click
             document.getElementById("create_button").addEventListener("click", function () {
@@ -268,7 +274,7 @@
                 // Clear the form
                 document.getElementById("edit_form").reset();
 
-                var d = genogram.state.selectedNode;
+                var d = genogram.d3family.getSelectedNode();
 
                 document.getElementById("edit_name").value = d.name;
 
@@ -300,12 +306,18 @@
 
                 updatedInfo.conditions = [];
 
-                for(var k in genogram.conditions){
+                var conditionDivs = document.getElementById("conditions").getElementsByTagName("input");
 
-                    var cond = genogram.conditions[k];
+                for(var i = 0; i < conditionDivs.length; i++){
 
-                    if(document.getElementById("edit_cond_" + cond).checked){
-                        updatedInfo.conditions.push(cond);
+                    var condition = conditionDivs[i];
+
+                    if(condition.checked){
+                        var splitId = condition.id.split("_");
+
+                        var conditionId = splitId[splitId.length-1];
+
+                        updatedInfo.conditions.push(conditionId);
                     }
                 }
 
@@ -406,11 +418,11 @@
                 var x = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth;
                 var y = window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
 
-                genogram.updateWindow(x, y);
+                svg.attr("width", x).attr("height", y);
             };
 
             // Update graph
-            genogram.updateGraph();
+            genogram.initialize();
 
         </script>
     </body>
