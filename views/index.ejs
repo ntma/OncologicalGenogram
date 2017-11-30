@@ -96,24 +96,26 @@
                             </div>
 
                             <!-- Conditions -->
-                            <label>Conditions: </label>
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input id="create_cond_BC" class="form-check-input" type="checkbox" value="breast_cancer">
-                                    Breast Cancer
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input id="create_cond_DB" class="form-check-input" type="checkbox" value="diabetes">
-                                    Diabetes
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input id="create_cond_HD" class="form-check-input" type="checkbox" value="heart_disease">
-                                    Heart Disease
-                                </label>
+                            <div id="create_conditions">
+                                <label>Conditions: </label>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input id="create_cond_BC" class="form-check-input" type="checkbox" value="breast_cancer">
+                                        Breast Cancer
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input id="create_cond_DB" class="form-check-input" type="checkbox" value="diabetes">
+                                        Diabetes
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input id="create_cond_HD" class="form-check-input" type="checkbox" value="heart_disease">
+                                        Heart Disease
+                                    </label>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -164,7 +166,7 @@
                             </div>
 
                             <!-- Conditions -->
-                            <div id="conditions">
+                            <div id="edit_conditions">
                                 <label>Conditions: </label>
                                 <div class="form-check">
                                     <label class="form-check-label">
@@ -241,6 +243,14 @@
                 document.getElementById("create_form").reset();
             });
 
+            // Prevent enter form
+            document.getElementById("create_form").addEventListener("keydown", function(e){
+                var x = e.which;
+                if (x === 13) {
+                    e.preventDefault();
+                }
+            });
+
             // On create element
             document.getElementById("save_create").addEventListener("click", function(){
                 var newInfo = {};
@@ -256,12 +266,18 @@
 
                 newInfo.conditions = [];
 
-                for( var k in genogram.conditions){
+                var conditionDivs = document.getElementById("create_conditions").getElementsByTagName("input");
 
-                    var cond = genogram.conditions[k];
+                for(var i = 0; i < conditionDivs.length; i++){
 
-                    if(document.getElementById("create_cond_" + cond).checked){
-                        newInfo.conditions.push(cond);
+                    var condition = conditionDivs[i];
+
+                    if(condition.checked){
+                        var splitId = condition.id.split("_");
+
+                        var conditionId = splitId[splitId.length-1];
+
+                        newInfo.conditions.push(conditionId);
                     }
                 }
 
@@ -291,6 +307,14 @@
                 }
             });
 
+            // Prevent enter form
+            document.getElementById("edit_form").addEventListener("keydown", function(e){
+                var x = e.which;
+                if (x === 13) {
+                    e.preventDefault();
+                }
+            });
+
             // On save edit element
             document.getElementById("save_edit").addEventListener("click", function(){
                 var updatedInfo = {};
@@ -303,10 +327,9 @@
                     updatedInfo.gender = "F";
                 }
 
-
                 updatedInfo.conditions = [];
 
-                var conditionDivs = document.getElementById("conditions").getElementsByTagName("input");
+                var conditionDivs = document.getElementById("edit_conditions").getElementsByTagName("input");
 
                 for(var i = 0; i < conditionDivs.length; i++){
 

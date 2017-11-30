@@ -64,6 +64,8 @@ Family.prototype.addMarriage = function(source, target){
 
             mar.source = source;
         } else {
+            mar = new Relationship();
+
             source.setMarried(true);
 
             if(target){

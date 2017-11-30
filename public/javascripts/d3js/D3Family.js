@@ -394,7 +394,6 @@ D3Family.prototype.addElement = function (values) {
     }
 
     //TODO: [BUG] Added elements are null after setting X/Y here
-
     Family.prototype.addElement.call(this, elem);
 
     this.updateGraph();

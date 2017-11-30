@@ -19,24 +19,40 @@ function GenogramLegend(svg){
         .attr("height", "100%");
 
     var legend = container.append('xhtml:div')
-        .attr("id", "familyLegend")
-        .attr("style", "position: relative;margin-bottom: 0.5em;margin-left: 1em;border: 2px solid #EEEEEE;border-radius: 5px;padding: 1em;z-index: 5;fill: #F6FBFF;");
+        .style("position", "relative")
+        .style("margin-bottom", "0.5em")
+        .style("margin-left", "1.0em")
+        .style("border", "2px solid #EEEEEE")
+        .style("border-radius", "5px")
+        .style("padding", "1em")
+        .style("z-index", "5")
+        .style("fill", "#F6FBFF")
+        .attr("id", "familyLegend");
 
     var header = legend.append('legend')
-        .attr("style", "font-size:15px;font-weight: bold;")
-        .html("Family Members:")
-        .append("hr");
+        .style("font-size", "15px")
+        .style("font-weight", "bold")
+        .html("Family Members:");
 
     var innerLegend = legend.append("div")
         .attr("id", "familyLegendBody");
 
+    this.header = header;
+    this.separator = null;
     this.legend = innerLegend[0][0];
 }
 
 
 GenogramLegend.prototype.updateLegend = function(elements, newEl){
 
-    var fl = this.legend;//document.getElementById('familyLegendBody');
+    var fl = this.legend;
+
+    if(!this.separator){
+        this.separator = this.header.append("hr");
+    } else if(elements.length === 0){
+        this.separator.remove();
+        this.separator = null;
+    }
 
     if(newEl){
         var p = document.createElement('p');
